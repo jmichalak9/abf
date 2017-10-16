@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+  "name": "abf",
+  "version": "0.1",
+  "description": "A Firefox extension to access bookmarks fast",
+  "homepage_url": "https://github.com/jmichalak9/abf",
+  "icons": {
+    "48": "icons/48.png",
+    "96": "icons/96.png"
+  },
+
+  "permissions": [
+    "bookmarks",
+    "tabs"
+  ],
+
+  "browser_action": {
+    "default_title": "abf"
+  },
+
+  "background": {
+    "scripts": ["background.js"]
+  }
+
+}
