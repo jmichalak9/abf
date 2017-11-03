@@ -1,48 +1,66 @@
-//TODO a lot of stuff
-var i = 0;
-var sites = [];
+let folderId = "";
+let sites = [];
+let i = 0;
+
 function makeIndent(indentLength) {
   return ".".repeat(indentLength);
 }
 
-function logItems(bookmarkItem, indent) {
-	
-  if (bookmarkItem.url) {
-    console.log(makeIndent(indent) + bookmarkItem.url);
-	sites.push(bookmarkItem.url);
-	//browser.tabs.update({url: bookmarkItem.url});
-  } else {
-    console.log(makeIndent(indent) + "Folder:     " + bookmarkItem.id);
-    indent++;
+function getFolderId(bookmarkItem, indent) {
+  if (bookmarkItem.title === "abf") {
+    folderId = bookmarkItem.id;
   }
   if (bookmarkItem.children) {
     for (child of bookmarkItem.children) {
-      logItems(child, indent);
+      getFolderId(child, indent);
     }
   }
   indent--;
 }
 
-function logTree(bookmarkItems) {
-  logItems(bookmarkItems[0], 0);
-  tabchg();
+function getBookmarkList(bookmarkItem){
+  if (bookmarkItem.url) {
+    console.log(bookmarkItem.url);
+    sites.push(bookmarkItem.url);
+  }
+  if (bookmarkItem.children) {
+    for (child of bookmarkItem.children) {
+      getBookmarkList(child);
+    }
+  }
+}
+
+function logBookmarkTree(bookmarkItems) {
+  getFolderId(bookmarkItems[0], 0);
+}
+
+function logSites(bookmarkItems){
+  getBookmarkList(bookmarkItems[0]);
 }
 
 function onRejected(error) {
   console.log(`An error: ${error}`);
 }
 
-function tabchg(){
-	console.log("******", sites[i]);
-	browser.tabs.update({url: sites[i]});	
-	i++;
-}
-var currentTab;
-var currentBookmark;
-
-function main() {
-	var gettingTree = browser.bookmarks.getSubTree("2czw911m5qMw");
-	gettingTree.then(logTree, onRejected);
+function update(){
+  browser.tabs.update({url: sites[i]});
+  console.log("Now on site: ", sites[i]);
+  i = (i + 1) % sites.length;
 }
 
-browser.browserAction.onClicked.addListener(main);
+async function main(){
+  // get abf folder id
+  let bookmarkTree = browser.bookmarks.getTree();
+  bookmarkTree.then(logBookmarkTree, onRejected);
+  await bookmarkTree;
+  console.log("abf folder id: " + folderId);
+
+  // get bookmark list from abf subtree
+  let abfTree = browser.bookmarks.getSubTree(folderId);
+  abfTree.then(logSites, onRejected);
+  await abfTree;
+}
+
+main();
+// update tab
+browser.browserAction.onClicked.addListener(update);
